@@ -1,4 +1,4 @@
-# UDPParseAndTx
+# Getafix
 
 ## Description
 
@@ -12,7 +12,7 @@ Input file rules:
 
 ## Usage
 
-    java -jar UDPParseAndTx <remote_ip_or_host_name> <port> <path_to_input_file>
+    java -jar Getafix.jar <remote_ip_or_host_name> <port> <path_to_input_file>
     
 Where:
 * `<remote_ip_or_host_name>` is the IP address or host name of the receiver
