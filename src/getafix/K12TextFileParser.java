@@ -30,13 +30,13 @@ import java.nio.ByteBuffer;
  *
  * @author Georgios Migdos <cyberpython@gmail.com>
  */
-public class SimpleFileParser {
+public class K12TextFileParser {
 
-    private File inputFile;
+    private int offset;
     private BufferedReader r;
 
-    public SimpleFileParser(File inputFile) throws FileNotFoundException {
-        this.inputFile = inputFile;
+    public K12TextFileParser(File inputFile, int offset) throws FileNotFoundException {
+        this.offset = offset;
         this.r = new BufferedReader(new FileReader(inputFile));
     }
 
@@ -65,9 +65,9 @@ public class SimpleFileParser {
                     }
                 }
             }
-            if (byteCount > 0) { //OK, we got some bytes
-                byte[] result = new byte[byteCount];
-                System.arraycopy(buf.array(), 0, result, 0, byteCount);
+            if (byteCount > offset) { //OK, we got some bytes we can use
+                byte[] result = new byte[byteCount-offset];
+                System.arraycopy(buf.array(), offset, result, 0, byteCount-offset);
                 return result;
             }
         }
@@ -79,7 +79,7 @@ public class SimpleFileParser {
         String line;
         while ((line = r.readLine()) != null) {
             line = line.trim();
-            if (!(line.equals("") || line.startsWith("+"))) {//TODO verify checks
+            if (line.startsWith("|")) {
                 return line;
             }
         }

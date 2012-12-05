@@ -43,17 +43,19 @@ public class Getafix {
         File inputFile;
         InetAddress host = null;
         int port = 5555;
+        int offset = 42;
         long totalBytesSent = 0;
         long totalPacketsSent = 0;
-        if(args.length!=3){
+        if(args.length!=4){
             System.out.println("Wrong number of parameters. Usage: ");
-            System.out.println("java -jar UDPParseAndTx.jar <remote_ip/host_name> <port> <input_file>");
+            System.out.println("java -jar Getafix.jar <remote_ip/host_name> <port> <offset> <input_file>");
+            System.out.println("The typical offset for UDP packets captured on Ethernet is 42.");
             System.out.println();
             System.exit(0);
         }
-        inputFile = new File(args[2]);
+        inputFile = new File(args[3]);
         if(!inputFile.isFile()){
-            System.err.println(args[2]+" does not point to an existing file.");
+            System.err.println(args[3]+" does not point to an existing file.");
             System.exit(1);
         }
         try{
@@ -69,20 +71,33 @@ public class Getafix {
             System.exit(1);
         }
         try{
+            offset = Integer.parseInt(args[2]);
+            if(offset<0){
+                throw new NumberFormatException();
+            }
+        }catch(NumberFormatException nfe){
+            System.err.println(args[2]+" is not a valid offset value.");
+            System.exit(1);
+        }
+        try{
             DatagramSocket sock = new DatagramSocket();
-            SimpleFileParser sfp = new SimpleFileParser(inputFile);
+            K12TextFileParser sfp = new K12TextFileParser(inputFile, offset);
             byte[] bytes;
+            long time = System.currentTimeMillis();
             while( (bytes=sfp.getNextPacketBytes())!=null){
                 DatagramPacket packet = new DatagramPacket(bytes,bytes.length, host, port);
                 sock.send(packet);
                 totalBytesSent += bytes.length;
                 totalPacketsSent++;
             }
+            time = System.currentTimeMillis() - time;
             System.out.println("-----------------------------------------------------------------");
             System.out.println("Total packets sent: "+totalPacketsSent);
             System.out.println("Total bytes sent: "+totalBytesSent);
+            System.out.println("Total time: "+String.format("%.3f", time/1000.0d)+" sec");
             if(totalPacketsSent>0){
-                System.out.println("Average number of bytes per packet: "+(((double)totalBytesSent) / totalPacketsSent));
+                System.out.println("Average number of bytes per packet: "+String.format("%.3f", ((double)totalBytesSent) / totalPacketsSent));
+                System.out.println("Average time per packet: "+String.format("%.3f", (((double)time)/totalPacketsSent)) +" msec");
             }
         }catch(IOException ioe){
             System.err.println("Unexpected I/O error - Bye, bye cruel world... :(");
