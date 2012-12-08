@@ -1,5 +1,10 @@
 package getafix.ui;
 
+import java.awt.Image;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.UIManager;
 
 /**
@@ -14,6 +19,19 @@ public class GetafixMainWindow extends javax.swing.JFrame {
     public GetafixMainWindow() {
         initComponents();
         setLocationRelativeTo(null);
+        List<Image> icons = new ArrayList<Image>();
+        try{
+            icons.add(ImageIO.read(GetafixMainWindow.class.getResource("/getafix/ui/resources/icon_16x16.png")));
+            icons.add(ImageIO.read(GetafixMainWindow.class.getResource("/getafix/ui/resources/icon_24x24.png")));
+            icons.add(ImageIO.read(GetafixMainWindow.class.getResource("/getafix/ui/resources/icon_32x32.png")));
+            icons.add(ImageIO.read(GetafixMainWindow.class.getResource("/getafix/ui/resources/icon_48x48.png")));
+            icons.add(ImageIO.read(GetafixMainWindow.class.getResource("/getafix/ui/resources/icon_64x64.png")));
+            icons.add(ImageIO.read(GetafixMainWindow.class.getResource("/getafix/ui/resources/icon_96x96.png")));
+            icons.add(ImageIO.read(GetafixMainWindow.class.getResource("/getafix/ui/resources/icon_128x128.png")));
+            icons.add(ImageIO.read(GetafixMainWindow.class.getResource("/getafix/ui/resources/icon_256x256.png")));
+            setIconImages(icons);
+        }catch(IOException ioe){
+        }
     }
 
     /**
