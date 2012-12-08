@@ -14,31 +14,16 @@ You can create files to use as input for Getafix with Wireshark. Just use Wiresh
 
 ## Build instructions
 
-### Unix & Unix-like systems
-
-    cd <path where the source code is>
-    ./build.sh
-
-OR
-
-    cd <path where the source code is>
-    rm -f Getafix.jar
-    mkdir tmp
-    mkdir tmp/getafix
-    javac src/getafix/*.java
-    mv src/getafix/*.class tmp/getafix/
-    cp Manifest.txt tmp/Manifest.txt
-    cd tmp
-    jar cfm Getafix.jar Manifest.txt getafix/*.class
-    mv Getafix.jar ../
-    cd ../
-    rm -rf tmp
-
-### Windows systems
-
-Refer to the instructions for Unix systems above and use the equivalent Windows commands.
+    cd <path_where_the_code_is>
+    ant clean jar
 
 ## Usage
+
+To run the graphical user interface, double click on the JAR file under Windows or Linux. Another way is to run the application with no arguments:
+
+    java -jar Getafix.jar
+
+To run it using the CLI open a terminal and give:
 
     java -jar Getafix.jar <remote_ip_or_host_name> <port> <offset> <delay> <path_to_input_file>
     
