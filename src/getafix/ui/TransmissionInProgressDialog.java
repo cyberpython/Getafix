@@ -1,6 +1,8 @@
 package getafix.ui;
 
 import getafix.K12TextFileParser;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -104,7 +106,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
         jProgressBar1.setString("Status: Transmitting...");
         jProgressBar1.setValue(0);
         
-        SwingWorker<TransmissionResult, TransmissionResult> w = new SwingWorker<TransmissionResult, TransmissionResult>() {
+        final SwingWorker<TransmissionResult, TransmissionResult> w = new SwingWorker<TransmissionResult, TransmissionResult>() {
 
             @Override
             protected TransmissionResult doInBackground() throws Exception {
@@ -121,7 +123,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                     K12TextFileParser sfp = new K12TextFileParser(inputFile, offset);
                     byte[] bytes;
                     long startTime = System.currentTimeMillis();
-                    while( (bytes=sfp.getNextPacketBytes())!=null){
+                    while( ((bytes=sfp.getNextPacketBytes())!=null) && (!isCancelled()) ){
                         DatagramPacket packet = new DatagramPacket(bytes,bytes.length, dest, destPort);
                         sock.send(packet);
                         totalPayloadSent += bytes.length;
@@ -155,11 +157,27 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
 
             @Override
             protected void done() {
-                jProgressBar1.setString("Status: Finished");
+                if(isCancelled()){
+                    jProgressBar1.setString("Status: Cancelled");
+                }else{
+                    jProgressBar1.setString("Status: Finished");
+                }
                 jButton1.setEnabled(true);
+                jButton2.setEnabled(false);
             }
             
         };
+        for(ActionListener l:jButton2.getActionListeners()){
+            jButton2.removeActionListener(l);
+        }
+        jButton2.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                w.cancel(false);
+            }
+        });
+        jButton2.setEnabled(true);
         w.execute();
     }
     
@@ -193,6 +211,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
+        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Packet transmission in progress");
@@ -230,6 +249,10 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
         jLabel10.setText("0");
         jLabel10.setToolTipText("");
 
+        jButton2.setText("Cancel");
+        jButton2.setEnabled(false);
+        jButton2.setPreferredSize(new java.awt.Dimension(43, 25));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -240,6 +263,8 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                     .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -292,7 +317,9 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                     .addComponent(jLabel5)
                     .addComponent(jLabel10))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 68, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -362,6 +389,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
