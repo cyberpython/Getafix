@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Getafix by cyberpython</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Getafix</h1>
+        <p class="header"></p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/cyberpython/Getafix/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/cyberpython/Getafix/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/cyberpython/Getafix">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/cyberpython">cyberpython</a></p>
+
+
+      </header>
+      <section>
+        <h1>Getafix</h1>
+
+<h2>Description</h2>
+
+<p>A very simple Java application that reads a text file (K12 format) line-by-line, parses byte values in that line and transmits these bytes in a UDP packet.</p>
+
+<p>Input file rules:</p>
+
+<ul>
+<li>All lines that do not start with '|' (ignoring whitespace) are ignored.</li>
+<li>The byte delimeter is '|'.</li>
+<li>Only 2 digit hex values are considered valid byte values(e.g. 3A or c0). All other values are ignored.</li>
+</ul><p>You can create files to use as input for Getafix with Wireshark. Just use Wireshark to capture the packets and save the result as a K12 text file.</p>
+
+<p><img src="http://dl.dropbox.com/u/599926/images/screenshot-getafix-01.png" alt="Input file selection and transmission options"><img src="http://dl.dropbox.com/u/599926/images/screenshot-getafix-02.png" alt="Transmission progress window"></p>
+
+<h2>Build instructions</h2>
+
+<pre><code>cd &lt;path_where_the_code_is&gt;
+ant clean jar
+</code></pre>
+
+<h2>Usage</h2>
+
+<p>To run the graphical user interface, double click on the JAR file under Windows or Linux. Another way is to run the application with no arguments:</p>
+
+<pre><code>java -jar Getafix.jar
+</code></pre>
+
+<p>To run it using the CLI open a terminal and give:</p>
+
+<pre><code>java -jar Getafix.jar &lt;remote_ip_or_host_name&gt; &lt;port&gt; &lt;offset&gt; &lt;delay&gt; &lt;path_to_input_file&gt;
+</code></pre>
+
+<p>Where:</p>
+
+<ul>
+<li>
+<code>&lt;remote_ip_or_host_name&gt;</code> is the IP address or host name of the receiver</li>
+<li>
+<code>&lt;port&gt;</code> is the target port of the receiver</li>
+<li>
+<code>&lt;offset&gt;</code> is the number of bytes to be ignored for each packet (e.g. to omit captured Ethernet, IP and UDP headers) - A typical offset for UDP packets captured on Ethernet is 42</li>
+<li>
+<code>&lt;delay&gt;</code> is the number of milliseconds to wait between packet transmissions</li>
+<li>
+<code>&lt;path_to_input_file&gt;</code> is the path to the text file containing the byte values to be transmitted</li>
+</ul><h2>License</h2>
+
+<p>Copyright 2012 Georgios Migdos <a href="mailto:cyberpython@gmail.com">cyberpython@gmail.com</a>
+The source code is available under the terms of the MIT license.</p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
