@@ -12,6 +12,9 @@ Input file rules:
 
 You can create files to use as input for Getafix with Wireshark. Just use Wireshark to capture the packets and save the result as a K12 text file.
 
+![Input file selection and transmission options](http://dl.dropbox.com/u/599926/images/screenshot-getafix-01.png)
+![Transmission progress window](http://dl.dropbox.com/u/599926/images/screenshot-getafix-02.png)
+
 ## Build instructions
 
     cd <path_where_the_code_is>
