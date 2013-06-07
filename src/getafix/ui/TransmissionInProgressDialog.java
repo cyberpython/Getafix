@@ -37,6 +37,9 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
         this.delay = delay;
 
         initComponents();
+        jToggleButton1.setSelected(false);
+        jToggleButton1.setEnabled(true);
+
         setLocationRelativeTo(parent);
         setupProgressBar();
     }
@@ -105,69 +108,70 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
     private void transmit() {
         jProgressBar1.setString("Status: Transmitting...");
         jProgressBar1.setValue(0);
-        
+
         final SwingWorker<TransmissionResult, TransmissionResult> w = new SwingWorker<TransmissionResult, TransmissionResult>() {
 
             @Override
             protected TransmissionResult doInBackground() throws Exception {
                 TransmissionResult result = null;
-                long currentTime;
-                long totalDelay = 0;
-                long totalTime = 0;
                 long totalPayloadSent = 0;
                 int totalPacketsSent = 0;
                 double averagePayloadPerPacket = 0.0d;
-                double averageTimePerPacket = 0.0d;
-                try{
+                try {
                     DatagramSocket sock = new DatagramSocket();
                     K12TextFileParser sfp = new K12TextFileParser(inputFile, offset);
                     byte[] bytes;
-                    long startTime = System.currentTimeMillis();
-                    while( ((bytes=sfp.getNextPacketBytes())!=null) && (!isCancelled()) ){
-                        DatagramPacket packet = new DatagramPacket(bytes,bytes.length, dest, destPort);
+                    while(!isCancelled()) {
+                        while (jToggleButton1.isSelected()) {
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException ie) {
+                            }
+                        }
+                        if(((bytes = sfp.getNextPacketBytes()) == null)||isCancelled()){
+                            break;
+                        }
+                        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, dest, destPort);
                         sock.send(packet);
                         totalPayloadSent += bytes.length;
                         totalPacketsSent++;
-                        currentTime = System.currentTimeMillis();
-                        try{
+                        try {
                             Thread.sleep(delay);
 
-                        }catch(InterruptedException ie){
+                        } catch (InterruptedException ie) {
                         }
-                        totalDelay += System.currentTimeMillis()-currentTime;
-                        totalTime = System.currentTimeMillis() - startTime;
-                        if(totalPacketsSent>0){
-                            averagePayloadPerPacket = ((double)totalPayloadSent) / totalPacketsSent;
-                            averageTimePerPacket = ((double)System.currentTimeMillis()-startTime-totalDelay)/totalPacketsSent;
+                        if (totalPacketsSent > 0) {
+                            averagePayloadPerPacket = ((double) totalPayloadSent) / totalPacketsSent;
                         }
-                        result = new TransmissionResult(totalPacketsSent, totalTime, totalPayloadSent, averagePayloadPerPacket, averageTimePerPacket);
+                        result = new TransmissionResult(totalPacketsSent, totalPayloadSent, averagePayloadPerPacket);
                         publish(result);
                     }
                     return result;
-                }catch(IOException ioe){
+                } catch (IOException ioe) {
                     return null;
                 }
             }
 
             @Override
             protected void process(List<TransmissionResult> chunks) {
-                TransmissionResult interimResult = chunks.get(chunks.size()-1);
+                TransmissionResult interimResult = chunks.get(chunks.size() - 1);
                 updateControls(interimResult);
             }
 
             @Override
             protected void done() {
-                if(isCancelled()){
+                if (isCancelled()) {
                     jProgressBar1.setString("Status: Cancelled");
-                }else{
+                } else {
                     jProgressBar1.setString("Status: Finished");
                 }
                 jButton1.setEnabled(true);
                 jButton2.setEnabled(false);
+                jToggleButton1.setEnabled(false);
+                jToggleButton1.setSelected(false);
             }
-            
         };
-        for(ActionListener l:jButton2.getActionListeners()){
+        for (ActionListener l : jButton2.getActionListeners()) {
             jButton2.removeActionListener(l);
         }
         jButton2.addActionListener(new ActionListener() {
@@ -180,14 +184,12 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
         jButton2.setEnabled(true);
         w.execute();
     }
-    
-    private void updateControls(TransmissionResult r){
+
+    private void updateControls(TransmissionResult r) {
         jProgressBar1.setValue(r.getTotalPackets());
         jLabel6.setText(String.valueOf(r.getTotalPackets()));
         jLabel7.setText(String.valueOf(r.getTotalPayload()));
-        jLabel8.setText(String.format("%.3f", r.getTotalTime()/1000.0d));
         jLabel9.setText(String.format("%.3f", r.getAveragePayloadPerPacket()));
-        jLabel10.setText(String.format("%.3f", r.getAverageTimePerPacket()));
     }
 
     /**
@@ -199,19 +201,30 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel2 = new javax.swing.JPanel();
         jProgressBar1 = new javax.swing.JProgressBar();
-        jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
+        jToggleButton1 = new javax.swing.JToggleButton();
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle("Packet transmission in progress");
@@ -220,38 +233,40 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
         jProgressBar1.setString("Status: Idle");
         jProgressBar1.setStringPainted(true);
 
-        jButton1.setText("Close");
-        jButton1.setEnabled(false);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
         jLabel1.setText("Packets transmitted: ");
 
         jLabel2.setText("Total payload (bytes):");
 
-        jLabel3.setText("Total time:");
-
         jLabel4.setText("Average payload / packet (bytes):");
-
-        jLabel5.setText("Average time / packet (msec):");
 
         jLabel6.setText("0");
 
         jLabel7.setText("0");
 
-        jLabel8.setText("0");
-
         jLabel9.setText("0");
 
-        jLabel10.setText("0");
-        jLabel10.setToolTipText("");
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+
+        jButton1.setText("Close");
+        jButton1.setEnabled(false);
+        jButton1.setPreferredSize(new java.awt.Dimension(100, 25));
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton1);
 
         jButton2.setText("Cancel");
         jButton2.setEnabled(false);
-        jButton2.setPreferredSize(new java.awt.Dimension(43, 25));
+        jButton2.setPreferredSize(new java.awt.Dimension(100, 25));
+        jPanel1.add(jButton2);
+
+        jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jToggleButton1.setText("Pause");
+        jToggleButton1.setEnabled(false);
+        jPanel3.add(jToggleButton1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -261,11 +276,6 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -277,19 +287,15 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel7))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel8))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel10))
-                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel4)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel9)))
-                        .addGap(0, 266, Short.MAX_VALUE)))
+                        .addGap(0, 206, Short.MAX_VALUE)))
                 .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -306,21 +312,12 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                     .addComponent(jLabel7))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel8))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(jLabel9))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(jLabel10))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 68, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 192, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 
         pack();
@@ -391,15 +388,15 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JToggleButton jToggleButton1;
     // End of variables declaration//GEN-END:variables
 }
