@@ -125,7 +125,7 @@ public class Getafix {
                 byte[] bytes;
                 long time = System.currentTimeMillis();
                 int dotCounter = 0;
-                while ((bytes = sfp.getNextPacketBytes()) != null) {
+                while ((bytes = sfp.getNextPacket().getBytes()) != null) {
                     DatagramPacket packet = new DatagramPacket(bytes, bytes.length, host, port);
                     sock.send(packet);
                     totalBytesSent += bytes.length;

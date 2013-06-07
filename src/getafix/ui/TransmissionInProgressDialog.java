@@ -1,6 +1,7 @@
 package getafix.ui;
 
 import getafix.K12TextFileParser;
+import getafix.K12TextFileParser.Packet;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -24,17 +25,19 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
     private int destPort;
     private int offset;
     private int delay;
+    private boolean usetPacketTimes;
 
     /**
      * Creates new form TransmissionInProgressDialog
      */
-    public TransmissionInProgressDialog(java.awt.Frame parent, boolean modal, File inputFile, InetAddress dest, int destPort, int offset, int delay) {
+    public TransmissionInProgressDialog(java.awt.Frame parent, boolean modal, File inputFile, InetAddress dest, int destPort, int offset, int delay, boolean usetPacketTimes) {
         super(parent, modal);
         this.inputFile = inputFile;
         this.dest = dest;
         this.destPort = destPort;
         this.offset = offset;
         this.delay = delay;
+        this.usetPacketTimes = usetPacketTimes;
 
         initComponents();
         jToggleButton1.setSelected(false);
@@ -58,7 +61,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                 int numberOfPackets = 0;
                 try {
                     K12TextFileParser parser = new K12TextFileParser(inputFile, offset);
-                    while (parser.getNextPacketBytes() != null) {
+                    while (parser.getNextPacket() != null) {
                         numberOfPackets++;
                     }
                     return numberOfPackets;
@@ -113,6 +116,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
 
             @Override
             protected TransmissionResult doInBackground() throws Exception {
+                long lastTime = 0;
                 TransmissionResult result = null;
                 long totalPayloadSent = 0;
                 int totalPacketsSent = 0;
@@ -121,25 +125,40 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                     DatagramSocket sock = new DatagramSocket();
                     K12TextFileParser sfp = new K12TextFileParser(inputFile, offset);
                     byte[] bytes;
-                    while(!isCancelled()) {
+                    Packet p;
+                    while (!isCancelled()) {
                         while (jToggleButton1.isSelected()) {
                             try {
                                 Thread.sleep(500);
                             } catch (InterruptedException ie) {
                             }
                         }
-                        if(((bytes = sfp.getNextPacketBytes()) == null)||isCancelled()){
+                        if (((p = sfp.getNextPacket()) == null) || isCancelled()) {
                             break;
+                        }
+                        bytes = p.getBytes();
+                        if (lastTime == 0) {
+                            lastTime = p.getTimestamp();
+                        }
+                        if (usetPacketTimes) {
+                            try {
+                                Thread.sleep(p.getTimestamp()-lastTime);
+                                System.out.println("    Time1: "+lastTime+" - Time2: "+p.getTimestamp());
+                                System.out.println("Timediff: "+(p.getTimestamp()-lastTime));
+                                lastTime = p.getTimestamp();
+                            } catch (InterruptedException ie) {
+                            }
+                        } else {
+                            try {
+                                Thread.sleep(delay);
+
+                            } catch (InterruptedException ie) {
+                            }
                         }
                         DatagramPacket packet = new DatagramPacket(bytes, bytes.length, dest, destPort);
                         sock.send(packet);
                         totalPayloadSent += bytes.length;
                         totalPacketsSent++;
-                        try {
-                            Thread.sleep(delay);
-
-                        } catch (InterruptedException ie) {
-                        }
                         if (totalPacketsSent > 0) {
                             averagePayloadPerPacket = ((double) totalPayloadSent) / totalPacketsSent;
                         }
@@ -370,7 +389,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
             @Override
             public void run() {
                 try {
-                    TransmissionInProgressDialog dialog = new TransmissionInProgressDialog(new javax.swing.JFrame(), true, new File("/home/cyberpython/Desktop/dump.txt"), InetAddress.getByName("127.0.0.1"), 5555, 42, 100);
+                    TransmissionInProgressDialog dialog = new TransmissionInProgressDialog(new javax.swing.JFrame(), true, new File("/home/cyberpython/Desktop/dump.txt"), InetAddress.getByName("127.0.0.1"), 5555, 42, 100, true);
                     dialog.addWindowListener(new java.awt.event.WindowAdapter() {
 
                         @Override

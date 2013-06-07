@@ -24,7 +24,7 @@ public class GetafixMainPanel extends javax.swing.JPanel {
         File f = new File(jTextField1.getText());
         if(f.isFile()){
             try{
-                TransmissionInProgressDialog tpd = new TransmissionInProgressDialog(((JFrame)this.getTopLevelAncestor()), true, f, InetAddress.getByName(jTextField2.getText()), (Integer)jSpinner1.getModel().getValue(), (Integer)jSpinner2.getModel().getValue(), (Integer)jSpinner3.getModel().getValue());
+                TransmissionInProgressDialog tpd = new TransmissionInProgressDialog(((JFrame)this.getTopLevelAncestor()), true, f, InetAddress.getByName(jTextField2.getText()), (Integer)jSpinner1.getModel().getValue(), (Integer)jSpinner2.getModel().getValue(), (Integer)jSpinner3.getModel().getValue(), jCheckBox1.isSelected());
                 tpd.setVisible(true);
             }catch(UnknownHostException uhe){
                 JOptionPane.showMessageDialog(this, "Unkown host: "+jTextField2.getText(), "Error: Unknown destination", JOptionPane.ERROR_MESSAGE);
@@ -69,6 +69,7 @@ public class GetafixMainPanel extends javax.swing.JPanel {
         jPanel2 = new javax.swing.JPanel();
         jButton3 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        jCheckBox1 = new javax.swing.JCheckBox();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -114,10 +115,13 @@ public class GetafixMainPanel extends javax.swing.JPanel {
         jLabel6.setToolTipText("");
 
         jLabel7.setText("Wait");
+        jLabel7.setEnabled(false);
 
         jSpinner3.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(100), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jSpinner3.setEnabled(false);
 
         jLabel8.setText("milliseconds after transmitting each packet");
+        jLabel8.setEnabled(false);
 
         jPanel2.setLayout(new java.awt.BorderLayout());
 
@@ -142,6 +146,14 @@ public class GetafixMainPanel extends javax.swing.JPanel {
             }
         });
         jPanel2.add(jButton2, java.awt.BorderLayout.LINE_END);
+
+        jCheckBox1.setSelected(true);
+        jCheckBox1.setText("Use packet times");
+        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -195,8 +207,9 @@ public class GetafixMainPanel extends javax.swing.JPanel {
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(jSpinner3, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jLabel8)))
-                                        .addGap(0, 33, Short.MAX_VALUE)))))
+                                                .addComponent(jLabel8))
+                                            .addComponent(jCheckBox1))
+                                        .addGap(0, 0, Short.MAX_VALUE)))))
                         .addContainerGap())))
         );
         layout.setVerticalGroup(
@@ -224,11 +237,13 @@ public class GetafixMainPanel extends javax.swing.JPanel {
                     .addComponent(jLabel4)
                     .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jCheckBox1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(jSpinner3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 103, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -246,10 +261,18 @@ public class GetafixMainPanel extends javax.swing.JPanel {
         selectFile();
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
+        boolean enabled = !jCheckBox1.isSelected();
+        jLabel7.setEnabled(enabled);
+        jLabel8.setEnabled(enabled);
+        jSpinner3.setEnabled(enabled);
+    }//GEN-LAST:event_jCheckBox1ActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
