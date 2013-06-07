@@ -30,33 +30,42 @@
 
       </header>
       <section>
-        <h1>Getafix</h1>
+        <h1>
+<a name="getafix" class="anchor" href="#getafix"><span class="octicon octicon-link"></span></a>Getafix</h1>
 
-<h2>Description</h2>
+<h2>
+<a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h2>
 
-<p>A very simple Java application that reads a text file (K12 format) line-by-line, parses byte values in that line and transmits these bytes in a UDP packet.</p>
+<p>A very simple Java application that reads a text file (K12 format) line-by-line, parses packets and transmits their contents as UDP packets.</p>
 
-<p>Input file rules:</p>
+<p>Input files should be valid K12 files - each packet should be in the form:</p>
+
+<pre><code>+---------+---------------+----------+
+HH:MM:SS,mmm,nnn   ETHER
+|0   |BB|BB|.........|BB|
+</code></pre>
+
+<p>where</p>
 
 <ul>
-<li>All lines that do not start with '|' (ignoring whitespace) are ignored.</li>
-<li>The byte delimeter is '|'.</li>
+<li>
+<code>+---------+---------------+----------+</code> is the packet delimeter</li>
+<li>HH = hours in 24h format, MM = minutes, SS = seconds, mmm  = milliseconds, nnn = thousands of milliseconds</li>
+<li>BB = byte value in hexadecimal format</li>
 <li>Only 2 digit hex values are considered valid byte values(e.g. 3A or c0). All other values are ignored.</li>
 </ul><p>You can create files to use as input for Getafix with Wireshark. Just use Wireshark to capture the packets and save the result as a K12 text file.</p>
 
 <p><img src="http://dl.dropbox.com/u/599926/images/screenshot-getafix-01.png" alt="Input file selection and transmission options"><img src="http://dl.dropbox.com/u/599926/images/screenshot-getafix-02.png" alt="Transmission progress window"></p>
 
-<h2>Download</h2>
-
-<p>You can download the executable JAR file from <a href="https://github.com/cyberpython/Getafix/downloads">https://github.com/cyberpython/Getafix/downloads</a>.</p>
-
-<h2>Build instructions</h2>
+<h2>
+<a name="build-instructions" class="anchor" href="#build-instructions"><span class="octicon octicon-link"></span></a>Build instructions</h2>
 
 <pre><code>cd &lt;path_where_the_code_is&gt;
 ant clean jar
 </code></pre>
 
-<h2>Usage</h2>
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
 
 <p>To run the graphical user interface, double click on the JAR file under Windows or Linux. Another way is to run the application with no arguments:</p>
 
@@ -81,7 +90,8 @@ ant clean jar
 <code>&lt;delay&gt;</code> is the number of milliseconds to wait between packet transmissions</li>
 <li>
 <code>&lt;path_to_input_file&gt;</code> is the path to the text file containing the byte values to be transmitted</li>
-</ul><h2>License</h2>
+</ul><h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
 
 <p>Copyright 2012 Georgios Migdos <a href="mailto:cyberpython@gmail.com">cyberpython@gmail.com</a>
 The source code is available under the terms of the MIT license.</p>
