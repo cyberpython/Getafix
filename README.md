@@ -2,12 +2,19 @@
 
 ## Description
 
-A very simple Java application that reads a text file (K12 format) line-by-line, parses byte values in that line and transmits these bytes in a UDP packet.
+A very simple Java application that reads a text file (K12 format) line-by-line, parses packets and transmits their contents as UDP packets.
 
-Input file rules:
+Input files should be valid K12 files - each packet should be in the form:
 
-* All lines that do not start with '|' (ignoring whitespace) are ignored.
-* The byte delimeter is '|'.
+    +---------+---------------+----------+
+    HH:MM:SS,mmm,nnn   ETHER
+    |0   |BB|BB|.........|BB|
+
+where
+
+* `+---------+---------------+----------+` is the packet delimeter
+* HH = hours in 24h format, MM = minutes, SS = seconds, mmm  = milliseconds, nnn = thousands of milliseconds
+* BB = byte value in hexadecimal format
 * Only 2 digit hex values are considered valid byte values(e.g. 3A or c0). All other values are ignored.
 
 You can create files to use as input for Getafix with Wireshark. Just use Wireshark to capture the packets and save the result as a K12 text file.
