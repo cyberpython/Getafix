@@ -46,6 +46,8 @@ Where:
 * `<delay>` is the number of milliseconds to wait between packet transmissions
 * `<path_to_input_file>` is the path to the text file containing the byte values to be transmitted
 
+*Note: The command line application can only send packets through UDP and always uses the provided delay between packet transmissions.*
+
 ## License
 
 Copyright 2012 Georgios Migdos <cyberpython@gmail.com>
