@@ -1,17 +1,15 @@
 package getafix.ui;
 
 import getafix.K12TextFileParser;
-import getafix.K12TextFileParser.Packet;
+import getafix.Packet;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.List;
+import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
 /**
@@ -23,21 +21,21 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
     private File inputFile;
     private InetAddress dest;
     private int destPort;
-    private int offset;
     private int delay;
     private boolean usetPacketTimes;
+    private boolean tcp;
 
     /**
      * Creates new form TransmissionInProgressDialog
      */
-    public TransmissionInProgressDialog(java.awt.Frame parent, boolean modal, File inputFile, InetAddress dest, int destPort, int offset, int delay, boolean usetPacketTimes) {
+    public TransmissionInProgressDialog(java.awt.Frame parent, boolean modal, File inputFile, InetAddress dest, int destPort, int delay, boolean usetPacketTimes, boolean useTCP) {
         super(parent, modal);
         this.inputFile = inputFile;
         this.dest = dest;
         this.destPort = destPort;
-        this.offset = offset;
         this.delay = delay;
         this.usetPacketTimes = usetPacketTimes;
+        this.tcp = useTCP;
 
         initComponents();
         jToggleButton1.setSelected(false);
@@ -60,7 +58,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
             protected Integer doInBackground() throws Exception {
                 int numberOfPackets = 0;
                 try {
-                    K12TextFileParser parser = new K12TextFileParser(inputFile, offset);
+                    K12TextFileParser parser = new K12TextFileParser(inputFile);
                     while (parser.getNextPacket() != null) {
                         numberOfPackets++;
                     }
@@ -81,6 +79,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                     if (numberOfPackets >= 0) {
                         jProgressBar1.setMaximum(numberOfPackets);
                         jProgressBar1.setString("Ready");
+                        jLabel3.setText("(out of "+numberOfPackets+")");
                         transmit();
                     } else if (numberOfPackets == -1) {
                         jProgressBar1.setString("Error: File not found!");
@@ -121,9 +120,15 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                 long totalPayloadSent = 0;
                 int totalPacketsSent = 0;
                 double averagePayloadPerPacket = 0.0d;
+                DatagramSocket udpSock = null;
+                Socket tcpSock = null;
                 try {
-                    DatagramSocket sock = new DatagramSocket();
-                    K12TextFileParser sfp = new K12TextFileParser(inputFile, offset);
+                    if(tcp){
+                        tcpSock = new Socket(dest, destPort);
+                    }else{
+                        udpSock = new DatagramSocket();
+                    }
+                    K12TextFileParser sfp = new K12TextFileParser(inputFile);
                     byte[] bytes;
                     Packet p;
                     while (!isCancelled()) {
@@ -143,8 +148,6 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                         if (usetPacketTimes) {
                             try {
                                 Thread.sleep(p.getTimestamp()-lastTime);
-                                System.out.println("    Time1: "+lastTime+" - Time2: "+p.getTimestamp());
-                                System.out.println("Timediff: "+(p.getTimestamp()-lastTime));
                                 lastTime = p.getTimestamp();
                             } catch (InterruptedException ie) {
                             }
@@ -155,8 +158,12 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                             } catch (InterruptedException ie) {
                             }
                         }
-                        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, dest, destPort);
-                        sock.send(packet);
+                        if(tcp){
+                            tcpSock.getOutputStream().write(bytes);
+                        }else{
+                            DatagramPacket packet = new DatagramPacket(bytes, bytes.length, dest, destPort);
+                            udpSock.send(packet);
+                        }
                         totalPayloadSent += bytes.length;
                         totalPacketsSent++;
                         if (totalPacketsSent > 0) {
@@ -166,9 +173,19 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                         publish(result);
                     }
                     return result;
-                } catch (IOException ioe) {
-                    return null;
+                } catch (ConnectException ce) {
+                    JOptionPane.showMessageDialog(rootPane, "Connection to "+dest.getHostName()+":"+destPort+" failed!", "Connection error", JOptionPane.ERROR_MESSAGE);
+                }catch (IOException ioe) {
+                    java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ioe);
+                } finally{
+                    if(tcpSock!=null){
+                        tcpSock.close();
+                    }
+                    if(udpSock!=null){
+                        udpSock.close();
+                    }
                 }
+                return null;
             }
 
             @Override
@@ -233,6 +250,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
         jButton2 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jToggleButton1 = new javax.swing.JToggleButton();
+        jLabel3 = new javax.swing.JLabel();
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -288,6 +306,8 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
         jToggleButton1.setPreferredSize(new java.awt.Dimension(100, 25));
         jPanel3.add(jToggleButton1);
 
+        jLabel3.setText("(out of 0)");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -301,7 +321,9 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel6))
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel3))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -310,12 +332,12 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                                 .addComponent(jLabel4)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel9)))
-                        .addGap(0, 206, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -325,7 +347,8 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(jLabel6))
+                    .addComponent(jLabel6)
+                    .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
@@ -371,13 +394,13 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(TransmissionInProgressDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(TransmissionInProgressDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(TransmissionInProgressDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(TransmissionInProgressDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -389,7 +412,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
             @Override
             public void run() {
                 try {
-                    TransmissionInProgressDialog dialog = new TransmissionInProgressDialog(new javax.swing.JFrame(), true, new File("/home/cyberpython/Desktop/dump.txt"), InetAddress.getByName("127.0.0.1"), 5555, 42, 100, true);
+                    TransmissionInProgressDialog dialog = new TransmissionInProgressDialog(new javax.swing.JFrame(), true, new File("/home/cyberpython/Desktop/dump.txt"), InetAddress.getByName("127.0.0.1"), 5555, 100, true, false);
                     dialog.addWindowListener(new java.awt.event.WindowAdapter() {
 
                         @Override
@@ -409,6 +432,7 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;

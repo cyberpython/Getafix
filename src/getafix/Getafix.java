@@ -48,13 +48,13 @@ public class Getafix {
             try {
                 javax.swing.UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (ClassNotFoundException ex) {
-                java.util.logging.Logger.getLogger(GetafixMainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ex);
             } catch (InstantiationException ex) {
-                java.util.logging.Logger.getLogger(GetafixMainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ex);
             } catch (IllegalAccessException ex) {
-                java.util.logging.Logger.getLogger(GetafixMainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ex);
             } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-                java.util.logging.Logger.getLogger(GetafixMainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                java.util.logging.Logger.getLogger("Getafix").log(java.util.logging.Level.SEVERE, null, ex);
             }
             //</editor-fold>
 
@@ -71,16 +71,14 @@ public class Getafix {
             File inputFile;
             InetAddress host = null;
             int port = 5555;
-            int offset = 42;
             int delay = 100;
             long currentTime;
             long totalDelay = 0;
             long totalBytesSent = 0;
             long totalPacketsSent = 0;
-            if (args.length != 5) {
+            if (args.length != 4) {
                 System.out.println("Wrong number of parameters. Usage: ");
-                System.out.println("java -jar Getafix.jar <remote_ip/host_name> <port> <offset> <delay> <input_file>");
-                System.out.println("The typical offset for UDP packets captured on Ethernet is 42.");
+                System.out.println("java -jar Getafix.jar <remote_ip/host_name> <port> <delay> <input_file>");
                 System.out.println();
                 System.exit(0);
             }
@@ -102,15 +100,6 @@ public class Getafix {
                 System.exit(1);
             }
             try {
-                offset = Integer.parseInt(args[2]);
-                if (offset < 0) {
-                    throw new NumberFormatException();
-                }
-            } catch (NumberFormatException nfe) {
-                System.err.println(args[2] + " is not a valid offset value.");
-                System.exit(1);
-            }
-            try {
                 delay = Integer.parseInt(args[3]);
                 if (delay < 0) {
                     throw new NumberFormatException();
@@ -121,7 +110,7 @@ public class Getafix {
             }
             try {
                 DatagramSocket sock = new DatagramSocket();
-                K12TextFileParser sfp = new K12TextFileParser(inputFile, offset);
+                K12TextFileParser sfp = new K12TextFileParser(inputFile);
                 byte[] bytes;
                 long time = System.currentTimeMillis();
                 int dotCounter = 0;

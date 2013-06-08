@@ -2,7 +2,9 @@
 
 ## Description
 
-A very simple Java application that reads a text file (K12 format) line-by-line, parses packets and transmits their contents as UDP packets.
+A very simple Java application that reads a text file (K12 format) line-by-line, parses packets and transmits their contents as UDP packets or write them in a TCP stream.
+
+**IMPORTANT: Getafix works only with UDP and TCP packets captured on IPv4 Ethernet networks**
 
 Input files should be valid K12 files - each packet should be in the form:
 
@@ -35,13 +37,12 @@ To run the graphical user interface, double click on the JAR file under Windows 
 
 To run it using the CLI open a terminal and give:
 
-    java -jar Getafix.jar <remote_ip_or_host_name> <port> <offset> <delay> <path_to_input_file>
+    java -jar Getafix.jar <remote_ip_or_host_name> <port> <delay> <path_to_input_file>
     
 Where:
 
 * `<remote_ip_or_host_name>` is the IP address or host name of the receiver
 * `<port>` is the target port of the receiver
-* `<offset>` is the number of bytes to be ignored for each packet (e.g. to omit captured Ethernet, IP and UDP headers) - A typical offset for UDP packets captured on Ethernet is 42
 * `<delay>` is the number of milliseconds to wait between packet transmissions
 * `<path_to_input_file>` is the path to the text file containing the byte values to be transmitted
 

@@ -26,45 +26,21 @@ package getafix;
 import getafix.exceptions.InvalidTimestampException;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Georgios Migdos <cyberpython@gmail.com>
  */
-public class K12TextFileParser {
-    
-    public class Packet{
-        private int timestamp;
-        private byte[] bytes;
-
-        public Packet(int timestamp, byte[] bytes) {
-            this.timestamp = timestamp;
-            this.bytes = bytes;
-        }
-
-        public byte[] getBytes() {
-            return bytes;
-        }
-
-        public void setBytes(byte[] bytes) {
-            this.bytes = bytes;
-        }
-
-        public int getTimestamp() {
-            return timestamp;
-        }
-
-        public void setTimestamp(int timestamp) {
-            this.timestamp = timestamp;
-        }
-    }
-
-    private int offset;
+public class K12TextFileParser{
+    private static final int ETHERNET_FRAME_HEADER_LENGTH = 14;
+    private Logger logger;
     private BufferedReader r;
 
-    public K12TextFileParser(File inputFile, int offset) throws FileNotFoundException {
-        this.offset = offset;
+    public K12TextFileParser(File inputFile) throws FileNotFoundException {
         this.r = new BufferedReader(new FileReader(inputFile));
+        this.logger = Logger.getLogger("K12FileParser");
     }
 
     /**
@@ -92,6 +68,7 @@ public class K12TextFileParser {
                             timestamp = parseTime(line.split(" ")[0]);
                             mode = 2;
                         }catch(InvalidTimestampException ite){
+                            logger.info(ite.getMessage());
                         }
                     }
                     break;
@@ -108,14 +85,46 @@ public class K12TextFileParser {
                                     buf.put((byte) value);
                                     byteCount++;
                                 } catch (NumberFormatException nfe) {
-                                    //not a valid hex number - ignore it
+                                    logger.log(Level.INFO, "Invalid hex number: {0}", byteNum);
                                 }
                             }
                         }
-                        if (byteCount > offset) { //OK, we got some bytes we can use
-                            byte[] result = new byte[byteCount-offset];
-                            System.arraycopy(buf.array(), offset, result, 0, byteCount-offset);
-                            return new Packet(timestamp, result);
+                        if (byteCount > ETHERNET_FRAME_HEADER_LENGTH){ // we got an Ethernet frame
+                            int offset = ETHERNET_FRAME_HEADER_LENGTH;
+                            byte[] arr = buf.array();
+                            if(isIPFrame(arr)){ // we got an IP packet
+                                int ipVersion = (0xF0&arr[14]) >>> 4;
+                                if(ipVersion == 4){
+                                    int ipHeaderLength = (0x0F&arr[14]);
+                                    offset += ipHeaderLength*4;
+                                    TransportProtocol proto = TransportProtocol.fromValue(arr[ETHERNET_FRAME_HEADER_LENGTH+9]);
+                                    int transportProtocolHeaderOffset = offset;
+                                    switch(proto){
+                                        case TCP:
+                                            offset += (0xF0 & arr[transportProtocolHeaderOffset+12])>>>4;
+                                            break;
+                                        case UDP:
+                                            offset += 8;
+                                            break;
+                                        default:
+                                            logger.log(Level.INFO, "Ignoring non TCP/UDP packet: {0}", line);
+                                            break;
+                                    }
+                                    if (offset>transportProtocolHeaderOffset){ // Valid transport protocol
+                                        if(byteCount > offset) { //OK, we got some bytes we can use
+                                            byte[] result = new byte[byteCount-offset];
+                                            System.arraycopy(buf.array(), offset, result, 0, byteCount-offset);
+                                            return new Packet(timestamp, result);
+                                        }else{
+                                            logger.log(Level.INFO, "Ignoring empty packet: {0}", line);
+                                        }
+                                    }
+                                }else{
+                                    logger.log(Level.INFO, "Ignoring non IPv4 packet: {0}", line);
+                                }
+                            }else{
+                                logger.log(Level.INFO, "Ignoring non IP frame: {0}", line);
+                            }
                         }
                     }
                     mode = 0;
@@ -123,6 +132,10 @@ public class K12TextFileParser {
             }
         }
         return null;
+    }
+    
+    private boolean isIPFrame(byte[] b){
+       return (b[12]==0x08)&&(b[13]==0x00);
     }
     
     /**
