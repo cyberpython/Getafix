@@ -36,7 +36,9 @@
 <h2>
 <a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h2>
 
-<p>A very simple Java application that reads a text file (K12 format) line-by-line, parses packets and transmits their contents as UDP packets.</p>
+<p>A very simple Java application that reads a text file (K12 format) line-by-line, parses packets and transmits their contents as UDP packets or write them in a TCP stream.</p>
+
+<p><strong>IMPORTANT: Getafix works only with UDP and TCP packets captured on IPv4 Ethernet networks</strong></p>
 
 <p>Input files should be valid K12 files - each packet should be in the form:</p>
 
@@ -74,7 +76,7 @@ ant clean jar
 
 <p>To run it using the CLI open a terminal and give:</p>
 
-<pre><code>java -jar Getafix.jar &lt;remote_ip_or_host_name&gt; &lt;port&gt; &lt;offset&gt; &lt;delay&gt; &lt;path_to_input_file&gt;
+<pre><code>java -jar Getafix.jar &lt;remote_ip_or_host_name&gt; &lt;port&gt; &lt;delay&gt; &lt;path_to_input_file&gt;
 </code></pre>
 
 <p>Where:</p>
@@ -85,12 +87,12 @@ ant clean jar
 <li>
 <code>&lt;port&gt;</code> is the target port of the receiver</li>
 <li>
-<code>&lt;offset&gt;</code> is the number of bytes to be ignored for each packet (e.g. to omit captured Ethernet, IP and UDP headers) - A typical offset for UDP packets captured on Ethernet is 42</li>
-<li>
 <code>&lt;delay&gt;</code> is the number of milliseconds to wait between packet transmissions</li>
 <li>
 <code>&lt;path_to_input_file&gt;</code> is the path to the text file containing the byte values to be transmitted</li>
-</ul><h2>
+</ul><p><em>Note: The command line application can only send packets through UDP and always uses the provided delay between packet transmissions.</em></p>
+
+<h2>
 <a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
 
 <p>Copyright 2012 Georgios Migdos <a href="mailto:cyberpython@gmail.com">cyberpython@gmail.com</a>
