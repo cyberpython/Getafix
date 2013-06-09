@@ -110,7 +110,11 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
     private void transmit() {
         jProgressBar1.setString("Status: Transmitting...");
         jProgressBar1.setValue(0);
-
+        
+        for(ActionListener a:jToggleButton1.getActionListeners()){
+            jToggleButton1.removeActionListener(a);
+        }
+        
         final SwingWorker<TransmissionResult, TransmissionResult> w = new SwingWorker<TransmissionResult, TransmissionResult>() {
 
             @Override
@@ -134,7 +138,9 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
                     while (!isCancelled()) {
                         while (jToggleButton1.isSelected()) {
                             try {
-                                Thread.sleep(500);
+                                synchronized(this){
+                                    wait();
+                                }
                             } catch (InterruptedException ie) {
                             }
                         }
@@ -218,6 +224,17 @@ public class TransmissionInProgressDialog extends javax.swing.JDialog {
             }
         });
         jButton2.setEnabled(true);
+        
+        jToggleButton1.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                synchronized(w){
+                    w.notifyAll();
+                }
+            }
+        });
+        
         w.execute();
     }
 
